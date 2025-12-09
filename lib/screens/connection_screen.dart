@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+
+import 'package:huntrix_lightstick_app/bluetooth/ble_service.dart';
 import 'package:huntrix_lightstick_app/widgets/floating_animator.dart';
 import 'package:huntrix_lightstick_app/widgets/pulsing_animator.dart';
 import 'package:huntrix_lightstick_app/widgets/pulsing_opacity_animator.dart';
@@ -18,6 +21,33 @@ class ConnectionScreen extends StatefulWidget {
 
 class _MyConnectionScreenState extends State<ConnectionScreen> {
   bool lightstickDiscovered = false;
+  final BleService _bleService = BleService();
+  DiscoveredDevice? _foundLightstick;
+
+  @override
+  void initState() {
+    super.initState();
+    _startScan();
+  }
+
+  void _startScan() async {
+    print("Starting scan");
+    _foundLightstick = await _bleService.scanForLightstick(
+      name: 'Huntrix Lightstick',
+      timeout: Duration(seconds: 10),
+    );
+    if (_foundLightstick == null) {
+      print("Was not able to find lightstick :(");
+      return;
+    }
+    print("Found lightstick!!!");
+    await _bleService.connectLightstick(
+      _foundLightstick!,
+      onConnect: () {
+        print("successfully connected to lightstick");
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,14 +95,6 @@ class _MyConnectionScreenState extends State<ConnectionScreen> {
                     ),
                   ),
                 ),
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      lightstickDiscovered = !lightstickDiscovered;
-                    });
-                  },
-                  child: Text("test discovered"),
-                ),
                 Expanded(
                   flex: 1,
                   child: !lightstickDiscovered
@@ -119,58 +141,89 @@ class _MyConnectionScreenState extends State<ConnectionScreen> {
                             ],
                           ),
                         )
-                      : FractionallySizedBox(
-                          widthFactor: 0.3,
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              SvgPicture.asset('assets/connect_button.svg'),
-                              PulsingAnimator(
-                                minScale: 1.05,
-                                maxScale: 1.1,
-                                duration: Duration(seconds: 5),
-                                child: RotatingAnimator(
-                                  duration: Duration(
-                                    seconds: 10,
-                                  ), // rotation speed
-                                  direction: RotationDirection.clockwise,
-                                  child: SvgPicture.asset(
-                                    'assets/connect_button_effect_blue.svg',
+                      : Center(
+                          child: AspectRatio(
+                            aspectRatio: 1,
+                            child: FractionallySizedBox(
+                              widthFactor: 0.5,
+                              heightFactor: 0.5,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  SvgPicture.asset('assets/connect_button.svg'),
+                                  PulsingAnimator(
+                                    minScale: 1.05,
+                                    maxScale: 1.12,
+                                    duration: Duration(seconds: 4),
+                                    child: RotatingAnimator(
+                                      duration: Duration(
+                                        seconds: 5,
+                                      ), // rotation speed
+                                      direction: RotationDirection.clockwise,
+                                      child: SvgPicture.asset(
+                                        'assets/connect_button_effect_gold.svg',
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ),
-                              PulsingAnimator(
-                                minScale: 1.05,
-                                maxScale: 1.1,
-                                duration: Duration(seconds: 3),
-                                child: RotatingAnimator(
-                                  duration: Duration(
-                                    seconds: 13,
-                                  ), // rotation speed
-                                  direction: RotationDirection.counterClockwise,
-                                  child: SvgPicture.asset(
-                                    'assets/connect_button_effect_purple.svg',
+                                  PulsingAnimator(
+                                    minScale: 1.05,
+                                    maxScale: 1.12,
+                                    duration: Duration(seconds: 5),
+                                    child: RotatingAnimator(
+                                      duration: Duration(
+                                        seconds: 8,
+                                      ), // rotation speed
+                                      direction: RotationDirection.clockwise,
+                                      child: SvgPicture.asset(
+                                        'assets/connect_button_effect_blue.svg',
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ),
-
-                              PulsingAnimator(
-                                minScale: 1.05,
-                                maxScale: 1.1,
-                                duration: Duration(seconds: 4),
-                                child: RotatingAnimator(
-                                  duration: Duration(
-                                    seconds: 15,
-                                  ), // rotation speed
-                                  direction: RotationDirection.clockwise,
-                                  child: SvgPicture.asset(
-                                    'assets/connect_button_effect_gold.svg',
+                                  PulsingAnimator(
+                                    minScale: 1.05,
+                                    maxScale: 1.12,
+                                    duration: Duration(seconds: 3),
+                                    child: RotatingAnimator(
+                                      duration: Duration(
+                                        seconds: 7,
+                                      ), // rotation speed
+                                      direction:
+                                          RotationDirection.counterClockwise,
+                                      child: SvgPicture.asset(
+                                        'assets/connect_button_effect_purple.svg',
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                  ClipOval(
+                                    child: Material(
+                                      color: Colors
+                                          .transparent, // Keep visuals from SVGs
+                                      child: InkWell(
+                                        onTap: () {
+                                          print("Tapped Connect button");
+                                        },
+                                        splashColor: Colors.white.withValues(
+                                          alpha: 0.1,
+                                        ),
+                                        highlightColor: Colors.white.withValues(
+                                          alpha: 0.2,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      lightstickDiscovered = !lightstickDiscovered;
+                    });
+                  },
+                  child: Text("test discovered"),
                 ),
               ],
             ),

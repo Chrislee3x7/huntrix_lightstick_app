@@ -46,10 +46,12 @@ class _SheenAnimatorState extends State<SheenAnimator>
       if (status == AnimationStatus.completed) {
         if (widget.delay > Duration.zero) {
           // fade out
+          if (!mounted) return;
           setState(() => _currentOpacity = 0.0);
           await Future.delayed(widget.delay);
         }
         // reset opacity and controller for next cycle
+        if (!mounted) return;
         setState(() => _currentOpacity = 1.0);
         _controller.reset();
         _controller.forward();
@@ -58,6 +60,12 @@ class _SheenAnimatorState extends State<SheenAnimator>
 
     _controller.forward();
   }
+
+  // @override
+  // void dispose() {
+  //   super.dispose();
+  //   _controller.removeStatusListener();
+  // }
 
   Tween<Offset> _getOffsetTween(SheenDirection dir) {
     double startPos = -0.5;
