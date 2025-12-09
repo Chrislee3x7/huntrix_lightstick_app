@@ -40,11 +40,22 @@ class _MyConnectionScreenState extends State<ConnectionScreen> {
       print("Was not able to find lightstick :(");
       return;
     }
+    setState(() {
+      lightstickDiscovered = true;
+    });
     print("Found lightstick!!!");
+  }
+
+  void _connectLightstick() async {
     await _bleService.connectLightstick(
       _foundLightstick!,
       onConnect: () {
         print("successfully connected to lightstick");
+      },
+      onDisconnect: () {
+        setState(() {
+          lightstickDiscovered = false;
+        });
       },
     );
   }
@@ -200,7 +211,7 @@ class _MyConnectionScreenState extends State<ConnectionScreen> {
                                           .transparent, // Keep visuals from SVGs
                                       child: InkWell(
                                         onTap: () {
-                                          print("Tapped Connect button");
+                                          _connectLightstick();
                                         },
                                         splashColor: Colors.white.withValues(
                                           alpha: 0.1,
@@ -217,14 +228,14 @@ class _MyConnectionScreenState extends State<ConnectionScreen> {
                           ),
                         ),
                 ),
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      lightstickDiscovered = !lightstickDiscovered;
-                    });
-                  },
-                  child: Text("test discovered"),
-                ),
+                // TextButton(
+                //   onPressed: () {
+                //     setState(() {
+                //       lightstickDiscovered = !lightstickDiscovered;
+                //     });
+                //   },
+                //   child: Text("test discovered"),
+                // ),
               ],
             ),
           ),
