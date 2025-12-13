@@ -4,6 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 
 import 'package:huntrix_lightstick_app/bluetooth/ble_service.dart';
+import 'package:huntrix_lightstick_app/navigation/fade_page_route.dart';
+import 'package:huntrix_lightstick_app/screens/control_screen.dart';
 import 'package:huntrix_lightstick_app/widgets/floating_animator.dart';
 import 'package:huntrix_lightstick_app/widgets/pulsing_animator.dart';
 import 'package:huntrix_lightstick_app/widgets/pulsing_opacity_animator.dart';
@@ -20,7 +22,8 @@ class ConnectionScreen extends StatefulWidget {
 }
 
 class _MyConnectionScreenState extends State<ConnectionScreen> {
-  bool lightstickDiscovered = false;
+  bool lightstickDiscovered = true;
+  bool connecting = false;
   final BleService _bleService = BleService();
   DiscoveredDevice? _foundLightstick;
 
@@ -47,10 +50,20 @@ class _MyConnectionScreenState extends State<ConnectionScreen> {
   }
 
   void _connectLightstick() async {
+    setState(() {
+      connecting = true;
+    });
     await _bleService.connectLightstick(
       _foundLightstick!,
       onConnect: () {
         print("successfully connected to lightstick");
+        Navigator.pushReplacement(
+          context,
+          FadePageRoute(page: const ControlScreen()),
+        );
+        setState(() {
+          connecting = false;
+        });
       },
       onDisconnect: () {
         setState(() {
@@ -64,12 +77,7 @@ class _MyConnectionScreenState extends State<ConnectionScreen> {
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque, // ensures taps anywhere are detected
-      onTap: () {
-        // Navigator.pushReplacement(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => const NextScreen()),
-        // );
-      },
+      onTap: () {},
       child: Scaffold(
         body: SafeArea(
           child: Center(
@@ -153,89 +161,96 @@ class _MyConnectionScreenState extends State<ConnectionScreen> {
                           ),
                         )
                       : Center(
-                          child: AspectRatio(
-                            aspectRatio: 1,
-                            child: FractionallySizedBox(
-                              widthFactor: 0.5,
-                              heightFactor: 0.5,
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  SvgPicture.asset('assets/connect_button.svg'),
-                                  PulsingAnimator(
-                                    minScale: 1.05,
-                                    maxScale: 1.12,
-                                    duration: Duration(seconds: 4),
-                                    child: RotatingAnimator(
-                                      duration: Duration(
-                                        seconds: 5,
-                                      ), // rotation speed
-                                      direction: RotationDirection.clockwise,
-                                      child: SvgPicture.asset(
-                                        'assets/connect_button_effect_gold.svg',
-                                      ),
-                                    ),
-                                  ),
-                                  PulsingAnimator(
-                                    minScale: 1.05,
-                                    maxScale: 1.12,
-                                    duration: Duration(seconds: 5),
-                                    child: RotatingAnimator(
-                                      duration: Duration(
-                                        seconds: 8,
-                                      ), // rotation speed
-                                      direction: RotationDirection.clockwise,
-                                      child: SvgPicture.asset(
-                                        'assets/connect_button_effect_blue.svg',
-                                      ),
-                                    ),
-                                  ),
-                                  PulsingAnimator(
-                                    minScale: 1.05,
-                                    maxScale: 1.12,
-                                    duration: Duration(seconds: 3),
-                                    child: RotatingAnimator(
-                                      duration: Duration(
-                                        seconds: 7,
-                                      ), // rotation speed
-                                      direction:
-                                          RotationDirection.counterClockwise,
-                                      child: SvgPicture.asset(
-                                        'assets/connect_button_effect_purple.svg',
-                                      ),
-                                    ),
-                                  ),
-                                  ClipOval(
-                                    child: Material(
-                                      color: Colors
-                                          .transparent, // Keep visuals from SVGs
-                                      child: InkWell(
-                                        onTap: () {
-                                          _connectLightstick();
-                                        },
-                                        splashColor: Colors.white.withValues(
-                                          alpha: 0.1,
-                                        ),
-                                        highlightColor: Colors.white.withValues(
-                                          alpha: 0.2,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            spacing: 30.h,
+                            children: [
+                              PulsingOpacityAnimator(
+                                minOpacity: 0,
+                                child: SvgPicture.asset(
+                                  'assets/connecting_icon.svg',
+                                  width: 40.w,
+                                  height: 40.w,
+                                ),
                               ),
-                            ),
+                              FractionallySizedBox(
+                                widthFactor: 0.3,
+                                child: AspectRatio(
+                                  aspectRatio: 1,
+                                  child: Stack(
+                                    alignment: Alignment.topCenter,
+                                    children: [
+                                      SvgPicture.asset(
+                                        'assets/connect_button.svg',
+                                      ),
+                                      PulsingAnimator(
+                                        minScale: 1.05,
+                                        maxScale: 1.12,
+                                        duration: Duration(seconds: 4),
+                                        child: RotatingAnimator(
+                                          duration: Duration(
+                                            seconds: 5,
+                                          ), // rotation speed
+                                          direction:
+                                              RotationDirection.clockwise,
+                                          child: SvgPicture.asset(
+                                            'assets/connect_button_effect_gold.svg',
+                                          ),
+                                        ),
+                                      ),
+                                      PulsingAnimator(
+                                        minScale: 1.05,
+                                        maxScale: 1.12,
+                                        duration: Duration(seconds: 5),
+                                        child: RotatingAnimator(
+                                          duration: Duration(
+                                            seconds: 8,
+                                          ), // rotation speed
+                                          direction:
+                                              RotationDirection.clockwise,
+                                          child: SvgPicture.asset(
+                                            'assets/connect_button_effect_blue.svg',
+                                          ),
+                                        ),
+                                      ),
+                                      PulsingAnimator(
+                                        minScale: 1.05,
+                                        maxScale: 1.12,
+                                        duration: Duration(seconds: 3),
+                                        child: RotatingAnimator(
+                                          duration: Duration(
+                                            seconds: 7,
+                                          ), // rotation speed
+                                          direction: RotationDirection
+                                              .counterClockwise,
+                                          child: SvgPicture.asset(
+                                            'assets/connect_button_effect_purple.svg',
+                                          ),
+                                        ),
+                                      ),
+                                      ClipOval(
+                                        child: Material(
+                                          color: Colors
+                                              .transparent, // Keep visuals from SVGs
+                                          child: InkWell(
+                                            onTap: () {
+                                              _connectLightstick();
+                                            },
+                                            splashColor: Colors.white
+                                                .withValues(alpha: 0.1),
+                                            highlightColor: Colors.white
+                                                .withValues(alpha: 0.2),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                 ),
-                // TextButton(
-                //   onPressed: () {
-                //     setState(() {
-                //       lightstickDiscovered = !lightstickDiscovered;
-                //     });
-                //   },
-                //   child: Text("test discovered"),
-                // ),
               ],
             ),
           ),

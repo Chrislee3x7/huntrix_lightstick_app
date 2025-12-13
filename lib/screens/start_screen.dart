@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:huntrix_lightstick_app/navigation/fade_page_route.dart';
 import 'package:huntrix_lightstick_app/widgets/pulsing_animator.dart';
 import 'package:huntrix_lightstick_app/screens/connection_screen.dart';
 
@@ -14,7 +15,7 @@ class StartScreen extends StatelessWidget {
       onTap: () {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const ConnectionScreen()),
+          FadePageRoute(page: const ConnectionScreen()),
         );
       },
       child: Scaffold(
